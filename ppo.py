@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ppo_llama_trl_pm.py
 """
-Fine‑tune a LLaMA‑family model with TRL‑PPO (trl ≤ 0.11)
+Fine‑tune a LLaMA‑family model with TRL‑PPO (trl ≤ 0.11)
 + PromptManager.  Reward = Gaussian distance to ground‑truth
 + leading‑digit bonus.
 """
@@ -18,7 +18,7 @@ from transformers import AutoTokenizer
 from trl import PPOConfig, PPOTrainer, AutoModelForCausalLMWithValueHead
 from transformers.utils import logging as hf_logging
 from tqdm.auto import tqdm
-
+import wandb
 from prompt_manager import PromptManager
 from torch.nn.utils.rnn import pad_sequence
 
@@ -137,6 +137,15 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--log_with", choices=["wandb", "tensorboard"], default="wandb")
     args = parser.parse_args()
+
+    # Check and create output directory early to detect permission issues
+    try:
+        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+        print(f"Output directory created/verified: {args.output_dir}")
+    except PermissionError:
+        print(f"ERROR: Permission denied when creating output directory: {args.output_dir}")
+        print("Please check directory permissions and try again.")
+        return  # Exit early if we can't create the directory
 
     # reproducibility
     random.seed(args.seed)
@@ -292,7 +301,6 @@ def main() -> None:
             )
 
             if trainer.accelerator.is_main_process and args.log_with == "wandb":
-                import wandb
                 mean_mae = float(np.mean(maes)) if maes else np.nan
 
                 rows = []
@@ -330,7 +338,6 @@ def main() -> None:
 
     # save final model
     if trainer.accelerator.is_main_process:
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
         trainer.save_pretrained(args.output_dir)
         print("✓ model saved to", args.output_dir)
 

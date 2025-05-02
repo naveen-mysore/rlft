@@ -1,9 +1,9 @@
-# activate the same venv you’re using for lm‑evaluation‑harne
+# activate the same venv you're using for lm‑evaluation‑harne
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import shutil, os, pathlib, torch
 
-src = "/data/nmysore/ppo_8r_vo_v1"
-dst = "/data/nmysore/ppo_8r_vo_v1_novhead"
+src = "/path/to/ppo_trained_model"
+dst = "/path/to/save/model_without_value_head"
 
 # 1. load – HF will happily ignore the unexpected v_head.* keys
 model = AutoModelForCausalLM.from_pretrained(
@@ -12,7 +12,7 @@ model = AutoModelForCausalLM.from_pretrained(
         torch_dtype="auto", 
         device_map="cpu")               # keep it on CPU while saving
 
-# 2. save only the causal‑LM weights (HF won’t write the v_head back)
+# 2. save only the causal‑LM weights (HF won't write the v_head back)
 model.save_pretrained(dst, safe_serialization=True)
 
 # 3. copy the tokenizer & configs
