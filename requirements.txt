@@ -1,0 +1,13 @@
+accelerate
+datasets
+huggingface-hub
+peft
+sentencepiece
+tensorboard
+tensorboard-data-server
+tokenizers
+torch
+transformers
+trl
+wandb
+pillow
